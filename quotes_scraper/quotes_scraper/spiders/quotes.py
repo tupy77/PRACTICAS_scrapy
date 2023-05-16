@@ -35,6 +35,19 @@ class QuotesSpyder(scrapy.Spider):
         #'JOBDIR': 'quotes_scraper/jobs',
     }
 
+    def parse_only_quotes(self, response, **kwargs):
+        if kwargs:
+            quotes = kwargs['quotes']
+        quotes.extend(response.xpath('//span[@class="text" and @itemprop="text"]/text()').getall())
+
+        next_page_button = response.xpath('//li[@class="next"]/a/@href').get()
+        if next_page_button:
+            yield response.follow(next_page_button, callback=self.parse_only_quotes, cb_kwargs={'quotes': quotes})
+        else:
+            yield {
+                'quotes': quotes
+            }
+
     def parse(self, response):
         
         # PROBAR RESPUESTAS
@@ -67,11 +80,10 @@ class QuotesSpyder(scrapy.Spider):
 
         yield {
             'title': title,
-            'quotes': quotes,
             'top_ten_tags': top_ten_tags
         }
 
         next_page_button = response.xpath('//li[@class="next"]/a/@href').get()
         if next_page_button:
-            yield response.follow(next_page_button, callback=self.parse)
+            yield response.follow(next_page_button, callback=self.parse_only_quotes, cb_kwargs={'quotes': quotes})
 
