@@ -50,37 +50,27 @@ class QuotesSpyder(scrapy.Spider):
 
     def parse(self, response):
         
-        # PROBAR RESPUESTAS
-        # print(response.status, response.headers)
-        #print('\n\n', '*' * 50, '\n\n')
-        
-        # VER DATOS EN CONSOLA
-        # print ('\n\n','*' * 50, '\n\n')
-        # title = response.xpath('//h1/a/text()').get()
-        # print(f'Titulo: {title}')
-        # print('\n\n', '*' * 50, '\n\n')
-        # quotes = response.xpath('//span[@class="text" and @itemprop="text"]/text()').getall()
-        # print('Citas: ')
-        # for quote in quotes:
-        #     print(f'- {quote}')
-        # print('\n\n', '*' * 50, '\n\n')
-        # top_ten_tags = response.xpath('//div[contains(@class, "tags-box")]//span[@class="tag-item"]/a/text()')
-        # print('Top ten tags: ')
-        # for tag in top_ten_tags:
-        #     print(f'- {tag.get()}')
-        # print('\n\n', '*' * 50, '\n\n')
-
-        
         title = response.xpath(
             '//h1/a/text()').get()        
         quotes = response.xpath(
             '//span[@class="text" and @itemprop="text"]/text()').getall()
-        top_ten_tags = response.xpath(
+        top_tags = response.xpath(
             '//div[contains(@class, "tags-box")]//span[@class="tag-item"]/a/text()').getall()
+        
+        
+        top = getattr(self, 'top', None) # top es un atributo de la clase QuotesSpyder. Si existe, se le asigna a top, si no, se le asigna None
+
+        if top:
+            top = int(top)
+            top_tags = top_tags[:top]
+
+        # Luego, en la consola, se ejecuta:
+        # scrapy crawl quotes -a top=3
+        # para que solo se muestren las 3 primeras etiquetas
 
         yield {
             'title': title,
-            'top_ten_tags': top_ten_tags
+            'top_tags': top_tags
         }
 
         next_page_button = response.xpath('//li[@class="next"]/a/@href').get()
